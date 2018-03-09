@@ -4,9 +4,7 @@
 I implemented a car which is built using Kivy framework and then used 3 sensors and trained it using Reinforcement Learning
 
 
-![](https://user-images.githubusercontent.com/22739177/32823936-c279686a-c993-11e7-906e-ea3e7830e275.gif)
-
-![](https://user-images.githubusercontent.com/22739177/32823937-c2950e80-c993-11e7-9358-89e50cdaae8f.gif)
+![](https://user-images.githubusercontent.com/22739177/32823936-c279686a-c993-11e7-906e-ea3e7830e275.gif) ![](https://user-images.githubusercontent.com/22739177/32823937-c2950e80-c993-11e7-9358-89e50cdaae8f.gif)
 
 Kivy - Open source Python library for rapid development of applications
 that make use of innovative user interfaces, such as multi-touch apps.
