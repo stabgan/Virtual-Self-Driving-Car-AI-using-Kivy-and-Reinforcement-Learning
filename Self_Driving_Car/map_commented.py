@@ -16,7 +16,7 @@ from kivy.properties import NumericProperty, ReferenceListProperty, ObjectProper
 from kivy.vector import Vector
 from kivy.clock import Clock
 
-# Importing the Dqn object from our AI in ai.py
+# Importing the Dqn object from our AI in ia.py
 from ai import Dqn
 
 # Adding this line if we don't want the right click to put a red point
@@ -40,7 +40,6 @@ def init():
     global sand # sand is an array that has as many cells as our graphic interface has pixels. Each cell has a one if there is sand, 0 otherwise.
     global goal_x # x-coordinate of the goal (where the car has to go, that is the airport or the downtown)
     global goal_y # y-coordinate of the goal (where the car has to go, that is the airport or the downtown)
-    global first_update # must declare global to actually modify the module-level variable
     sand = np.zeros((longueur,largeur)) # initializing the sand array with only zeros
     goal_x = 20 # the goal to reach is at the upper left of the map (the x-coordinate is 20 and not 0 because the car gets bad reward if it touches the wall)
     goal_y = largeur - 20 # the goal to reach is at the upper left of the map (y-coordinate)
