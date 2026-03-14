@@ -1,41 +1,109 @@
-# Virtual Self Driving Car AI using Kivy and pyTorch
+# Virtual Self-Driving Car AI
 
+A self-driving car simulation built with Kivy and Deep Q-Learning (DQN), where an agent learns to navigate a 2D map while avoiding user-drawn obstacles.
 
-I implemented a car which is built using Kivy framework and then used 3 sensors and trained it using Reinforcement Learning
+## What It Does
 
+A small car navigates a 2D canvas, learning in real time to drive between two goal points (top-left and bottom-right corners). You can draw "sand" (obstacles) on the map with your mouse, and the car learns to avoid them using reinforcement learning. The car's brain can be saved and loaded between sessions.
 
-![](https://user-images.githubusercontent.com/22739177/32823936-c279686a-c993-11e7-906e-ea3e7830e275.gif) ![](https://user-images.githubusercontent.com/22739177/32823937-c2950e80-c993-11e7-9358-89e50cdaae8f.gif)
+![demo](https://user-images.githubusercontent.com/22739177/32823936-c279686a-c993-11e7-906e-ea3e7830e275.gif)
+![demo2](https://user-images.githubusercontent.com/22739177/32823937-c2950e80-c993-11e7-9358-89e50cdaae8f.gif)
 
-Kivy - Open source Python library for rapid development of applications
-that make use of innovative user interfaces, such as multi-touch apps.
+## Architecture
 
-[Kivy](https://kivy.org/#home)
+### RL Algorithm — Deep Q-Network (DQN)
 
-I used Kivy to make the car environment .
+- **Network**: Simple feedforward neural net — `input(5) → fc(30, ReLU) → output(3)`
+- **Experience replay**: Buffer of 100,000 transitions, sampled in batches of 100
+- **Optimizer**: Adam (lr = 0.001)
+- **Loss**: Smooth L1 (Huber loss)
+- **Discount factor (γ)**: 0.9
+- **Action selection**: Softmax over Q-values scaled by temperature T=100 (exploration via stochastic sampling, not ε-greedy)
 
-Then I used Experience Replay and Deep Q intuition to create an AI which uses 3 sensors in the virtual car to detect 'sand' i.e. out of it's road areas . If it runs on the sand it gets punishment and it tries not to repeat that again .
+### State Space (5 inputs)
 
-The Deep Q-learning algorithm used in this unmanned vehicle AI project is a deep reinforcement learning algorithm invented by DeepMind in 2013. The combination of the Q-learning idea and the neural network algorithm can also be considered as the source of modern reinforcement learning algorithms. The researchers used this algorithm to let the computer learn 49 Atari games in 2015 and beat humans in most games. From the perspective of applicability, we do not need to tell AI specific rules. As long as it is constantly explored, it can slowly find the law and accomplish many intellectual activities that were previously considered only humans could accomplish.
+| Input | Description |
+|-------|-------------|
+| `signal1` | Sand density in a 20×20 pixel window around the front sensor |
+| `signal2` | Sand density around the left sensor (+30°) |
+| `signal3` | Sand density around the right sensor (−30°) |
+| `orientation` | Angle between car velocity and goal direction, normalized to [-1, 1] |
+| `-orientation` | Negated orientation (provides symmetry signal) |
 
-Since it is a combination of Q-learning and Deep learning, it combines AI to discuss what Q-learning is.
+### Action Space (3 outputs)
 
-Q-learning is a reinforcement learning algorithm. Unmanned vehicles need to take actions according to the current state, and after obtaining corresponding rewards, they must improve these actions so that the next time they reach the same state, the unmanned vehicle can make more. Excellent choice. We use Q(S,A) to indicate the utility value obtained by taking action A in the S state . In the following, the letter R is used to represent Rewards, and S' represents the new position that is reached after the A action is taken. (The difference between reward value R and utility value Q is that R represents the reward of this position . For example, for the unmanned vehicle, the position reward for the obstacle is -100, the position reward for the river is -120, and the reward for the asphalt road is 100, Sha Lu reward is 50, target reward is 10000. And Q represents the utility value of this action is taken to evaluate the merits of this action in a specific state, can be understood as unmanned The car's brain, which is a comprehensive consideration of all known states) The pseudo-code is as follows:
+| Action | Rotation |
+|--------|----------|
+| 0 | 0° (straight) |
+| 1 | +20° (left) |
+| 2 | −20° (right) |
 
-In the Bellman Equation, γ is a discount factor and α is a learning rate. The greater the gamma, the more attention will be paid by the unmanned vehicle to the previous experience, and the smaller the priority, the greater will be the immediate interest. The range of α is 0~1. The bigger the value is, the less effective the training is before reservation. It can be seen that when the value of α is 0, no matter how the AI ​​is trained, it cannot learn the new Q value; when the value of α is 1, the new Q value will completely replace the old Q value, and the new value will be completely forgotten in each training. Previous training results. These parameter values ​​are artificially set and need to be adjusted slowly based on experience.
+### Reward Function
 
-Then we combine the Q-learning algorithm with deep learning. From the High Level perspective, Q-learning has achieved the basic function of unmanned vehicle avoidance of roadblocks, and the deep learning algorithm allows the vehicle to automatically summarize and learn features, reducing the incompleteness of human-made features to better adapt Very complicated environmental conditions.
+| Condition | Reward |
+|-----------|--------|
+| Driving on sand | −1.0 |
+| Driving on road, moving away from goal | −0.2 |
+| Driving on road, moving toward goal | +0.1 |
+| Hitting any map edge | −1.0 |
 
-First, use a deep neural network as the network of Q values. Each point on the map has coordinates (X1, X2). Enter this state into the neural network to predict the Q value in each direction (assuming four actions in the figure Four directions, so get a total of four new Q values.) Q-target represents the Q value obtained when the state was last reached, and then uses the mean-square error to define the Loss Function. 
+When the car gets within 100 pixels of the goal, the goal flips to the opposite corner.
 
-![](https://user-images.githubusercontent.com/22739177/32822235-60bfc1b6-c98c-11e7-966a-2a2c295645cc.PNG)
+## Project Structure
 
-The calculated L value is back-propagated to calculate the weight w of each synapse (green circle) so that the L value can be as small as possible.
+```
+Self_Driving_Car/
+├── ai.py              # DQN agent: network, replay memory, learning logic
+├── map_commented.py   # Kivy app: car, sensors, game loop, reward logic
+└── car.kv             # Kivy layout: car and sensor widget definitions
+```
 
-It should be noted that the above process is called "learning". Although we compared the previous Q value and fed it back to the input, the Q value calculated this time is constant. What we need to do next is to make an "action" based on the Q value calculated this time.
+## Dependencies
 
+- Python 3.x
+- [Kivy](https://kivy.org/)
+- PyTorch
+- NumPy
+- Matplotlib
 
-![](https://user-images.githubusercontent.com/22739177/32822234-60a7c57a-c98c-11e7-82b2-82d53104940a.PNG)
+Install:
 
-The process of determining the "action" is the process of passing the obtained Q value to "Softmax-Function". "Softmax-Function" is an action selection strategy. It can help us make the best choice based on the current data. The principle involves probability theory. Here we focus on the application layer. There are detailed comments in the code.
+```bash
+pip install kivy torch numpy matplotlib
+```
 
-So why not directly select the action corresponding to the largest Q value, but use Softmax-Function to make the decision? There are several action selection strategies involved here. It is not impossible to directly select the largest Q value. This is called greedy strategy. The disadvantage is that it is easy to fall into the local optimal solution. Because if you finally achieve the goal after performing an action, then this strategy will always choose this action in the subsequent state, resulting in no chance to explore the global optimal solution.
+## Running
+
+```bash
+cd Self_Driving_Car
+python map_commented.py
+```
+
+- **Draw obstacles**: Click and drag on the canvas to paint sand
+- **Clear**: Removes all sand from the map
+- **Save**: Saves the trained brain to `last_brain.pth` and plots the score history
+- **Load**: Restores a previously saved brain
+
+## Known Issues and Deprecations
+
+These are documentation-only — no code changes have been made.
+
+1. **`Variable` with `volatile=True` is removed in modern PyTorch.** In `ai.py`, `select_action` uses `Variable(state, volatile=True)`. This was deprecated in PyTorch 0.4 and removed later. The modern equivalent is `torch.no_grad()`.
+
+2. **`retain_variables=True` renamed to `retain_graph=True`.** In `ai.py`, `td_loss.backward(retain_variables=True)` uses the old kwarg name. Works on very old PyTorch but will fail on recent versions.
+
+3. **`F.softmax` called without `dim` argument.** In `ai.py`, `F.softmax(...)` will raise a deprecation warning (or error in PyTorch ≥1.x) because the `dim` parameter is required.
+
+4. **`.multinomial()` called without `num_samples`.** `probs.multinomial()` requires a `num_samples` argument in modern PyTorch.
+
+5. **`torch.load` without `weights_only` parameter.** In recent PyTorch versions, `torch.load('last_brain.pth')` triggers a warning recommending `weights_only=True` for security.
+
+6. **Import path mismatch.** `map_commented.py` imports `from ai import Dqn`, so the file must be named `ai.py`. This works as-is, but the original README references `ia.py` in a comment — likely a leftover from a French-named version.
+
+7. **No `requirements.txt` or `setup.py`.** Dependencies are not formally declared.
+
+8. **Global state throughout.** The simulation relies heavily on global variables (`sand`, `brain`, `last_reward`, etc.), which makes the code fragile but functional for a learning project.
+
+## License
+
+MIT — Kaustabh Ganguly, 2018
