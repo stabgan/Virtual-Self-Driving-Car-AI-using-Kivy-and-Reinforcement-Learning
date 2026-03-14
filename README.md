@@ -7,7 +7,7 @@ A self-driving car simulation using Deep Q-Learning and Kivy — the agent learn
 
 ## What It Does
 
-A small car navigates a 2D canvas, learning in real time to drive between two goal points (top-left ↔ bottom-right). Draw "sand" obstacles on the map with your mouse — the car learns to avoid them using reinforcement learning. The brain can be saved/loaded between sessions.
+A small car navigates a 2D canvas, learning in real time to drive between two goal points (top-left ↔ bottom-right). Draw "sand" obstacles on the map with your mouse — the car learns to avoid them using reinforcement learning. The brain can be saved and loaded between sessions.
 
 ## Architecture
 
@@ -60,7 +60,7 @@ Self_Driving_Car/
 └── car.kv             # Kivy layout: car and sensor widget definitions
 ```
 
-## Tech Stack
+## 🛠 Tech Stack
 
 | | Technology | Purpose |
 |-|------------|---------|
@@ -68,7 +68,7 @@ Self_Driving_Car/
 | 🖼️ | Kivy | 2D simulation GUI |
 | 🔢 | NumPy | Sensor signal processing |
 | 📊 | Matplotlib | Score plotting |
-| 🐍 | Python 3 | Runtime |
+| 🐍 | Python 3.8+ | Runtime |
 
 ## Getting Started
 
@@ -92,10 +92,28 @@ python map_commented.py
 - **Save** — save brain to `last_brain.pth` + plot scores
 - **Load** — restore a previously saved brain
 
-## Known Issues
+## Modernization Changelog
 
-- The simulation relies heavily on global state, making it fragile for extension but functional as a learning project.
-- Sensor readings can produce index-out-of-bounds when the car is near map edges (numpy silently clips).
+Fixes applied to bring the codebase up to date with current PyTorch (2.x):
+
+| Original (broken) | Fixed |
+|--------------------|-------|
+| `from torch.autograd import Variable` | Removed — raw tensors used directly |
+| `Variable(state, volatile=True)` | `torch.no_grad()` context manager |
+| `F.softmax(x * 100)` (no dim) | `F.softmax(x * 100, dim=1)` |
+| `probs.multinomial()` | `probs.multinomial(num_samples=1)` |
+| `action.data[0, 0]` (returns tensor) | `action.item()` (returns Python int) |
+| `retain_variables=True` | `retain_graph=True` |
+| `Variable(torch.cat(x, 0))` | `torch.cat(x, 0)` |
+| `torch.Tensor(input_size)` (uninitialized) | `torch.zeros(input_size)` |
+| `torch.Tensor([val])` | `torch.tensor([val], dtype=...)` |
+| Hardcoded `'last_brain.pth'` path | `os.path.join(os.path.dirname(__file__), ...)` |
+| Sensor reads with no bounds checking | `_read_sensor()` helper with clamped indices |
+| Sand painting with negative indices | Clamped to valid array range |
+
+## ⚠️ Known Issues
+
+- The simulation relies on global state, making it fragile for extension but functional as a learning project.
 - No GPU support configured — runs on CPU only (sufficient for this network size).
 - Button positions are hardcoded relative to initial widget size and may overlap on small windows.
 
